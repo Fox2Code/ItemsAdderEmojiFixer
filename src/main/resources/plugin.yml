@@ -1,0 +1,14 @@
+name: ItemsAdderEmojiFixer
+version: '${version}'
+main: com.fox2code.itemsadderemojifixer.ItemsAdderEmojiFixer
+api-version: 1.16
+authors: [ Fox2Code ]
+description: Fix ItemsAdder emojis.
+website: http://fox2code.com/
+depend:
+  - ItemsAdder
+  - PlaceholderAPI
+commands:
+  print_emoji:
+    description: Print ItemAdder emoji into the chat.
+    permission: ia.user.image.gui
