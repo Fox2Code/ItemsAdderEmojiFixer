@@ -61,7 +61,7 @@ public final class ItemsAdderEmojiFixer extends JavaPlugin implements Listener {
         if ((this.iaImageUseAll = this.getServer().getPluginManager()
                 .getPermission("ia.user.image.use.*")) == null) {
             this.getServer().getPluginManager().addPermission(
-                    new Permission("ia.user.image.use.*"));
+                    this.iaImageUseAll = new Permission("ia.user.image.use.*"));
         }
         this.iaImageUseAll.getChildren()
                 .put("ia.user.image.use.heart", true);
