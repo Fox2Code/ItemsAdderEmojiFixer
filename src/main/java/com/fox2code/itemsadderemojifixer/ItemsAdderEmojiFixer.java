@@ -26,6 +26,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 
 public final class ItemsAdderEmojiFixer extends JavaPlugin implements Listener {
+    private static final boolean DEBUG = false;
     private static ItemsAdderEmojiFixer instance;
     private final HashMap<String, String> emojiMap = new HashMap<>(256);
     private PlaceholderExpansion emojiPlaceholderInterface = null;
@@ -121,14 +122,35 @@ public final class ItemsAdderEmojiFixer extends JavaPlugin implements Listener {
         if (disableTask != null) disableTask.run();
     }
 
+    // Note: Either "onPlayerChatMonitor" or "onPlayerChatLowest" is needed depending on chat plugin
+    // But I keep both because it's really tricky to make proper detection code for each chat plugin
+
     @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlayerChat(AsyncPlayerChatEvent playerChatEvent) {
+    public void onPlayerChatMonitor(AsyncPlayerChatEvent playerChatEvent) {
         Player player = playerChatEvent.getPlayer();
         if (!player.hasPermission("ia.user.image.chat")) return;
         if (player.hasPermission("ia.user.image.use.*")) player = null;
-        playerChatEvent.setMessage(this.insertEmojis(
-                playerChatEvent.getMessage(), player));
+        String oldMessage = playerChatEvent.getMessage();
+        String newMessage = this.insertEmojis(oldMessage, player);
+        if (DEBUG) {
+            this.getLogger().info("Monitor: \"" + oldMessage + "\" -> \"" + newMessage + "\"");
+        }
+        playerChatEvent.setMessage(newMessage);
+    }
+
+    @SuppressWarnings("deprecation")
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPlayerChatLowest(AsyncPlayerChatEvent playerChatEvent) {
+        Player player = playerChatEvent.getPlayer();
+        if (!player.hasPermission("ia.user.image.chat")) return;
+        if (player.hasPermission("ia.user.image.use.*")) player = null;
+        String oldMessage = playerChatEvent.getMessage();
+        String newMessage = this.insertEmojis(oldMessage, player);
+        if (DEBUG) {
+            this.getLogger().info("Lowest: \"" + oldMessage + "\" -> \"" + newMessage + "\"");
+        }
+        playerChatEvent.setMessage(newMessage);
     }
 
     @EventHandler
