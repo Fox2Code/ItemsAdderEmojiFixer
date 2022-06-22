@@ -2,11 +2,7 @@
 
 ItemAdder emoji system was broken, so I made this plugin.
 
-Fix serval bugs with ItemsAdder emoji system, including:
-- Fix emojis appearing as `:mc_apple:` instead of `🍎` in chat on 1.19+.
-- Fix `ia.user.image.use.*` permission not working properly.
-
-It's not as good as if the original plugin worked, but it's still better than nothing.
+Emojis on 1.19+ have been fixed in ItemsAdder 3.2.0b-beta6, this plugin will no loger be supported.
 
 Dependencies:
 - [ItemsAdder](https://www.spigotmc.org/resources/%E2%9C%A8itemsadder%E2%AD%90emotes-mobs-items-armors-hud-gui-emojis-blocks-wings-hats-liquids.73355/)
