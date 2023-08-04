@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.fox2code'
-version = '1.0.2'
+version = '1.1.0'
 
 repositories {
     mavenCentral()
@@ -24,10 +24,21 @@ repositories {
         name = 'placeholderapi'
         url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
     }
+    maven {
+        name = "dmulloy2-repo"
+        url = "https://repo.dmulloy2.net/repository/public/"
+    }
+    maven {
+        name = 'Scarsz-Nexus'
+        url = 'https://nexus.scarsz.me/content/groups/public/'
+    }
 }
 
 dependencies {
     compileOnly 'com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT'
+    compileOnly 'com.comphenix.protocol:ProtocolLib:5.0.0'
+    compileOnly 'it.unimi.dsi:fastutil:8.5.12'
+    compileOnly 'com.discordsrv:discordsrv:+'
     compileOnly 'com.github.LoneDev6:api-itemsadder:3.0.0'
     compileOnly 'me.clip:placeholderapi:2.11.1'
 }
@@ -43,9 +54,13 @@ java {
     withSourcesJar()
 }
 
+jar {
+    from "LICENSE"
+}
+
 tasks.withType(JavaCompile).configureEach {
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
-        options.release = targetJavaVersion
+        options.release.set(targetJavaVersion)
     }
 }
 
