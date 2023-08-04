@@ -6,8 +6,13 @@ Fix serval bugs with ItemsAdder emoji system, including:
 - Fix emojis appearing as `:mc_apple:` instead of `🍎` in chat on 1.19+.
 - Fix `ia.user.image.use.*` permission not working properly.
 
-It's not as good as if the original plugin worked, but it's still better than nothing.
+Additionally has DiscordSRV support, supporting the translation of some emojis.
+
+It's not as good as if the original plugin worked properly, but it's still better than nothing.
 
 Dependencies:
 - [ItemsAdder](https://www.spigotmc.org/resources/%E2%9C%A8itemsadder%E2%AD%90emotes-mobs-items-armors-hud-gui-emojis-blocks-wings-hats-liquids.73355/)
 - [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/)
+
+Optional Dependencies:
+- [DiscordSRV](https://www.spigotmc.org/resources/discordsrv.18494/)
