@@ -22,15 +22,17 @@ final class DiscordSRVCompat implements Listener, ComponentRenderer<Function<Str
     private static final HashBiMap<String, String> emojiTranslations = HashBiMap.create();
     private static final BiMap<String, String> emojiTranslationsInverted = emojiTranslations.inverse();
     private static final Function<String, String> unmapToDiscord = s -> {
-        s = ItemsAdderEmojiFixer.getInstance().unmapEmojisEx(s, true,
+        ItemsAdderEmojiFixer itemsAdderEmojiFixer =
+                ItemsAdderEmojiFixer.getInstance();
+        s = itemsAdderEmojiFixer.unmapEmojisEx(s, true,
                 id -> emojiTranslations.getOrDefault(id, id));
-        System.out.println(s);
         if (s.indexOf(':') != -1) {
             //noinspection UnnecessaryUnicodeEscape <- Not unecessary
             s = EmojiParser.parseToUnicode(s).replace("\u2764", ":heart:")
                     .replace(":yawning_face:", "\uD83E\uDD71");
         }
-        System.out.println(s);
+        final String txt = itemsAdderEmojiFixer.getEmojiExtCodePointStr();
+        while (s.endsWith(txt)) s = s.substring(0, s.length() - txt.length());
         return s;
     };
     private static final Function<String, String> unmapToMinecraft = s -> {

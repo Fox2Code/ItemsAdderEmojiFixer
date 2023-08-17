@@ -432,4 +432,8 @@ public final class ItemsAdderEmojiFixer extends JavaPlugin implements Listener, 
     public Iterator<Map.Entry<String, String>> iterator() {
         return Collections.unmodifiableSet(this.emojiMap.entrySet()).iterator();
     }
+
+    public String getEmojiExtCodePointStr() {
+        return this.emojiExtCodePointStr;
+    }
 }
