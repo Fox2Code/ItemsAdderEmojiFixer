@@ -5,12 +5,12 @@ api-version: 1.16
 authors: [ Fox2Code ]
 description: Fix ItemsAdder emojis.
 website: http://fox2code.com/
-folia-supported: true
 depend:
   - ItemsAdder
   - PlaceholderAPI
 softdepend:
   - DiscordSRV
+  - EssentialsDiscord
 commands:
   print_emoji:
     description: Print ItemAdder emoji into the chat.

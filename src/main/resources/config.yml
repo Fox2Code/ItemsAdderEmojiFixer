@@ -1,0 +1,7 @@
+# Workaround, experience may vary depending on chat plugin, game version, and ItemsAdder version.
+useEmojiExtWorkaround: false
+useItemsAdderAPIWorkaround: false
+# If you want DiscordSRV/EssentialsDiscord support
+useDiscordBridgeCompat: true
+# Command shield avoid players abusing emojis to do mass kicks
+useCommandShield: true

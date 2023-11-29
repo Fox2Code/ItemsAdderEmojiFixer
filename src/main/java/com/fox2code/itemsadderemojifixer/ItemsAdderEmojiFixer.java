@@ -1,7 +1,10 @@
 package com.fox2code.itemsadderemojifixer;
 
 import com.fox2code.itemsadderemojifixer.intmap.ItemsAdderEmojiFixerIntMap;
+import com.fox2code.itemsadderemojifixer.shield.CommandShield;
+import com.fox2code.itemsadderemojifixer.utils.VersionHelper;
 import dev.lone.itemsadder.api.Events.ItemsAdderLoadDataEvent;
+import dev.lone.itemsadder.api.FontImages.FontImageWrapper;
 import me.clip.placeholderapi.PlaceholderAPIPlugin;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
@@ -38,6 +41,8 @@ public final class ItemsAdderEmojiFixer extends JavaPlugin implements Listener, 
     private boolean needEmojiReload;
     private int emojiExtCodePoint;
     private String emojiExtCodePointStr = "";
+    private boolean useEmojiExtWorkaround = false;
+    private boolean useItemsAdderAPIWorkaround = false;
     private final Function<String, String> emojiResolver = emojiId -> {
         PlaceholderExpansion emojiPlaceholderInterface = this.emojiPlaceholderInterface;
         if (emojiPlaceholderInterface == null) {
@@ -48,8 +53,10 @@ public final class ItemsAdderEmojiFixer extends JavaPlugin implements Listener, 
         String placeholderText = emojiPlaceholderInterface.onPlaceholderRequest(null, emojiId);
         return placeholderText == null || placeholderText.startsWith(emojiId) ? null : placeholderText;
     };
+    private CommandShield commandShield;
     // Compatibility
     private boolean discordSrvCompat;
+    private boolean discordEssentialsXCompat;
 
     public static ItemsAdderEmojiFixer getInstance() {
         return ItemsAdderEmojiFixer.instance;
@@ -58,11 +65,32 @@ public final class ItemsAdderEmojiFixer extends JavaPlugin implements Listener, 
     @Override
     public void onLoad() {
         instance = this;
+        boolean onPurpurMC = false;
+        // CommandShield use Purpur as an additional security layer.
+        try {
+            Class.forName("org.purpurmc.purpur.event.ExecuteCommandEvent");
+            onPurpurMC = true;
+        } catch (Exception ignored) {}
+        this.commandShield = CommandShield.make(onPurpurMC);
     }
 
     @Override
     public void onEnable() {
         instance = this;
+        this.saveDefaultConfig();
+        this.commandShield.register(this);
+        this.useEmojiExtWorkaround = this.getConfig()
+                .getBoolean("useEmojiExtWorkaround", false);
+        this.useItemsAdderAPIWorkaround = this.getConfig()
+                .getBoolean("useItemsAdderAPIWorkaround", false);
+        if (this.useEmojiExtWorkaround || this.useItemsAdderAPIWorkaround) {
+            this.getLogger().warning("Usage of workarounds is not recommended!");
+        }
+        final boolean useDiscordBridgeCompat = this.getConfig()
+                .getBoolean("useDiscordBridgeCompat", true);
+        final boolean needCommandShield = VersionHelper.minecraftVersion >= 19;
+        boolean useCommandShield = this.getConfig()
+                .getBoolean("useCommandShield", needCommandShield);
         if ((this.iaImageUseAll = this.getServer().getPluginManager()
                 .getPermission("ia.user.image.use.*")) == null) {
             this.getServer().getPluginManager().addPermission(
@@ -72,8 +100,15 @@ public final class ItemsAdderEmojiFixer extends JavaPlugin implements Listener, 
                 .put("ia.user.image.use.heart", true);
         this.iaImageUseAll.recalculatePermissibles();
         this.needEmojiReload = true;
-        this.discordSrvCompat = this.getServer()
-                .getPluginManager().isPluginEnabled("DiscordSRV");
+        this.commandShield.setEnabled(useCommandShield && needCommandShield);
+        if (useCommandShield && !needCommandShield) {
+            this.getLogger().info( // Tell the user what we did
+                    "Command shield has been disabled due to not being required before Minecraft 1.19.x");
+        }
+        this.discordSrvCompat = useDiscordBridgeCompat &&
+                this.getServer().getPluginManager().isPluginEnabled("DiscordSRV");
+        this.discordEssentialsXCompat = useDiscordBridgeCompat &&
+                this.getServer().getPluginManager().isPluginEnabled("EssentialsDiscord");
         if (this.discordSrvCompat) {
             this.getLogger().info("Using DiscordSRV compat");
             try {
@@ -81,6 +116,17 @@ public final class ItemsAdderEmojiFixer extends JavaPlugin implements Listener, 
             } catch (Throwable t) {
                 this.getLogger().log(Level.WARNING,
                         "Unable to initialize DiscordSRV compat", t);
+                this.discordSrvCompat = false;
+            }
+        }
+        if (this.discordEssentialsXCompat) {
+            this.getLogger().info("Using EssentialsXDiscord compat");
+            try {
+                EssentialsXDiscordCompat.register(this);
+                EssentialsXDiscordCompat.enable();
+            } catch (Throwable t) {
+                this.getLogger().log(Level.WARNING,
+                        "Unable to initialize EssentialsXDiscord compat", t);
                 this.discordSrvCompat = false;
             }
         }
@@ -137,6 +183,12 @@ public final class ItemsAdderEmojiFixer extends JavaPlugin implements Listener, 
                 DiscordSRVCompat.disable();
             } catch (Throwable ignored) {}
         }
+        if (this.discordEssentialsXCompat) {
+            this.discordEssentialsXCompat = false;
+            try {
+                EssentialsXDiscordCompat.disable();
+            } catch (Throwable ignored) {}
+        }
         this.emojiMap.clear();
         this.invertedMap.clear();
         this.emojiPlaceholderInterface = null;
@@ -160,7 +212,11 @@ public final class ItemsAdderEmojiFixer extends JavaPlugin implements Listener, 
         if (DEBUG) {
             this.getLogger().info("Monitor: \"" + oldMessage + "\" -> \"" + newMessage + "\"");
         }
-        playerChatEvent.setMessage(newMessage + this.emojiExtCodePointStr);
+        if (this.useEmojiExtWorkaround) {
+            playerChatEvent.setMessage(newMessage + this.emojiExtCodePointStr);
+        } else {
+            playerChatEvent.setMessage(newMessage);
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -266,6 +322,11 @@ public final class ItemsAdderEmojiFixer extends JavaPlugin implements Listener, 
     }
 
     public String insertEmojis(String text, Player player) {
+        if (this.useItemsAdderAPIWorkaround) {
+            return player == null ?
+                    FontImageWrapper.replaceFontImages(text) :
+                    FontImageWrapper.replaceFontImages(player, text);
+        }
         StringBuilder stringBuilder = new StringBuilder();
         int i = text.indexOf(':');
         int i2;
